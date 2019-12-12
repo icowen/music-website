@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Instructions = props => {
+const Instructions = () => {
     return <div className={'instructions'}>
         {'Enter the any two notes you would like. ' +
         'Then listen as a song is generated off these values. ' +

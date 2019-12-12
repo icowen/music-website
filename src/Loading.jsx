@@ -8,10 +8,8 @@ export default class Loading extends React.Component {
             <Loader
                 type="Audio"
                 color="#00BFFF"
-                height={100}
-                width={100}
-                timeout={3000} //3 secs
-
+                height={200}
+                width={200}
             />
         );
     }

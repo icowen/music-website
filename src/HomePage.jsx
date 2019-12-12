@@ -17,8 +17,8 @@ class HomePage extends Component {
             component: null
         };
         this.onSubmit = this.onSubmit.bind(this);
-        this.onChange1 = this.onChange1.bind(this);
-        this.onChange2 = this.onChange2.bind(this);
+        this.onChange = this.onChange.bind(this);
+        // this.onChange2 = this.onChange2.bind(this);
         this.predict = this.predict.bind(this);
         this.getNoteAsArr = this.getNoteAsArr.bind(this);
     }
@@ -34,8 +34,7 @@ class HomePage extends Component {
     onSubmit = (event) => {
         event.preventDefault();
         this.setState(prevState => ({
-            prediction: [prevState.note1, prevState.note2],
-            component: <Loading/>
+            prediction: [prevState.note1, prevState.note2]
         }));
         this.getNoteAsArr();
     };
@@ -90,6 +89,11 @@ class HomePage extends Component {
                 prediction: [...prevState.prediction, predNote]
             }));
         }
+        this.setState({
+            component: <p>
+                <button onClick={this.playSong.bind(this)}>Play</button>
+            </p>
+        });
         return true;
     };
 
@@ -120,9 +124,7 @@ class HomePage extends Component {
             this.setState({
                 notesAsArr: ret,
                 error: null,
-                component: <p>
-                    <button onClick={this.playSong.bind(this)}>Play</button>
-                </p>
+                component: <Loading/>
             });
             return this.predict();
         } catch (e) {
@@ -131,41 +133,47 @@ class HomePage extends Component {
         return false
     };
 
-    onChange1 = (event) => {
+    onChange = (event) => {
+        const name = event.target.name;
         const notes = event.target.value;
-        this.setState({note1: notes})
-    };
-
-    onChange2 = (event) => {
-        const notes = event.target.value;
-        this.setState({note2: notes})
+        this.setState({[name]: notes})
     };
 
     render() {
         return (
             <div className={'main-content'}>
-                <div className={'title'}>
+                <h1 className={'title'}>
                     {'Generate Music Using a Neural Net'}
-                </div>
+                </h1>
                 <Instructions/>
                 <div>
                     <form onSubmit={this.onSubmit}>
-                        <input className={'input-box'}
-                               type={'text'}
-                               placeholder={'Enter first note (A4, B#9, C-1, etc.)...'}
-                               onChange={this.onChange1}/>
+                        <label>
+                            Enter first note (A4, B#9, C-1, etc.):
+                            <input className={'input-box'}
+                                   name={'note1'}
+                                   type={'text'}
+                                   placeholder={'C4'}
+                                   onChange={this.onChange}/>
+                        </label>
+                        <br/>
+                        <label>
+                            Enter second note (A4, B#9, C-1, etc.):
+                            <input className={'input-box'}
+                                   name={'note2'}
+                                   type={'text'}
+                                   placeholder={'C4'}
+                                   onChange={this.onChange}/>
+                        </label>
+                        <br/>
+                        <input type="submit" value="Make Music!"/>
                     </form>
-                    <form onSubmit={this.onSubmit}>
-                        <input className={'input-box'}
-                               type={'text'}
-                               placeholder={'Enter second note (A4, B#9, C-1, etc.)...'}
-                               onChange={this.onChange2}/>
-                    </form>
-                    <div className={'output'}>{this.state.error}</div>
-                    <div className={'output'}>{this.state.note1}</div>
-                    <div className={'output'}>{this.state.note2}</div>
+                    <div className={'error'}>{this.state.error}</div>
                     <div className={'output'}>{this.state.component}</div>
-                    <MIDISounds ref={(ref) => (this.midiSounds = ref)} appElementName="root" instruments={[3]}/>
+                    <MIDISounds className={'midi'}
+                                ref={(ref) => (this.midiSounds = ref)}
+                                appElementName="root"
+                                instruments={[3]}/>
                 </div>
             </div>
         )
