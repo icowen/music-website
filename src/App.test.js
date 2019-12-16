@@ -1,9 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import {shallow} from 'enzyme';
 import App from './App';
+import HomePage from "./HomePage";
 
-it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<App />, div);
-  ReactDOM.unmountComponentAtNode(div);
+
+describe('My App', function () {
+    const component = shallow(<App />);
+    it('should render the HomePage', function () {
+        expect(component.find(HomePage).length).toEqual(1);
+    });
 });
