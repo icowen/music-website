@@ -190,6 +190,12 @@ class HomePage extends Component {
                     </form>
                     <div className={'error'}>{this.state.error}</div>
                     <div className={'output'}>{this.state.component}</div>
+                    <p>{"Untrained"}</p>
+                    <div className={'pitches'}>
+                        {this.state.untrainedPitches.map(x => <div className={'note'}>{x}</div>)}</div>
+                    <p>{"Trained"}</p>
+                    <div className={'pitches'}>
+                        {this.state.trainedPitches.map(x => <div className={'note'}>{x}</div>)}</div>
                     <MIDISounds className={'midi'}
                                 ref={(ref) => (this.midiSounds = ref)}
                                 appElementName="root"
