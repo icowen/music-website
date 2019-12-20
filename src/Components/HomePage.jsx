@@ -13,33 +13,60 @@ class HomePage extends Component {
             note2: null,
             notesAsArr: null,
             prediction: [],
-            pitches: [],
+            untrainedPrediction: [],
+            untrainedPitches: [],
+            trainedPitches: [],
             component: null
         };
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
-        // this.onChange2 = this.onChange2.bind(this);
         this.predict = this.predict.bind(this);
         this.getNoteAsArr = this.getNoteAsArr.bind(this);
     }
 
-    playSong = () => {
-        for (let i = 0; i < this.state.pitches.length; i++) {
-            setTimeout(() => {
-                this.midiSounds.playChordNow(3, [this.state.pitches[i]], 1)
-            }, i * 1000);
+    playSongTrained = () => {
+        for (let i = 0; i < this.state.trainedPitches.length; i++) {
+                this.midiSounds.playChordAt(i, 3, [this.state.trainedPitches[i]], 1);
         }
+    };
+
+    playSongUntrained = () => {
+        for (let i = 0; i < this.state.untrainedPitches.length; i++) {
+                this.midiSounds.playChordAt(i, 3, [this.state.untrainedPitches[i]], 1);
+        }
+    };
+
+    stop = () => {
+        this.midiSounds.cancelQueue();
     };
 
     onSubmit = (event) => {
         event.preventDefault();
         this.setState(prevState => ({
-            prediction: [prevState.note1, prevState.note2]
+            prediction: [prevState.note1, prevState.note2],
+            untrainedPrediction: [prevState.note1, prevState.note2]
         }));
         this.getNoteAsArr();
     };
 
     async predict() {
+        await this.predictWithModel(this.props.model, "trained");
+        await this.predictWithModel(this.props.untrained_model, "untrained");
+        this.setState({
+            component: <p>
+                <button onClick={this.playSongUntrained.bind(this)}>Play Untrained</button>
+                <button onClick={this.playSongTrained.bind(this)}>Play Trained</button>
+                <button onClick={this.stop.bind(this)}>Stop</button>
+            </p>
+        });
+        return true;
+    };
+
+    async predictWithModel(model, name) {
+        let prevNote1 = this.state.prediction.slice(-2, -1);
+        let prevNote2 = this.state.prediction.slice(-1);
+        let pred = [prevNote1, prevNote2];
+        let pitches = [];
         for (let j = 0; j < 100; j++) {
             const note = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
             const octave = [];
@@ -54,14 +81,14 @@ class HomePage extends Component {
             for (let i = 0; i < 129; i++) {
                 notesLettersAsKeys[note[i % 12] + octave[Math.floor(i / 12)]] = i;
             }
-            const prevNote1 = this.state.prediction.slice(-2, -1);
-            const prevNote2 = this.state.prediction.slice(-1);
+            prevNote1 = pred.slice(-2, -1);
+            prevNote2 = pred.slice(-1);
             const prevNoteArr1 = new Array(128).fill(0);
             const prevNoteArr2 = new Array(128).fill(0);
             prevNoteArr1[prevNote1] = 1;
             prevNoteArr2[prevNote2] = 1;
             let predInput = [...prevNoteArr1, ...prevNoteArr2];
-            let prediction = await this.props.model.predict(tf.tensor2d(predInput, [1, 256])).array();
+            let prediction = await model.predict(tf.tensor2d(predInput, [1, 256])).array();
             prediction = prediction[0];
             let arrSum = prediction.reduce((a, b) => a + b);
             const normPred = prediction.map(x => x / arrSum);
@@ -79,23 +106,16 @@ class HomePage extends Component {
                     } else {
                         predNote = notesNumsAsKeys[i];
                     }
-                    this.setState(prevState => ({
-                        pitches: [...prevState.pitches, i]
-                    }));
+                    pitches = [...pitches, i];
                     break;
                 }
             }
-            this.setState(prevState => ({
-                prediction: [...prevState.prediction, predNote]
-            }));
+            pred = [...pred, predNote];
+
         }
-        this.setState({
-            component: <p>
-                <button onClick={this.playSong.bind(this)}>Play</button>
-            </p>
-        });
-        return true;
-    };
+        this.setState({[name + "Pitches"]:pitches});
+        this.setState({[name + "Predictions"]: pred});
+    }
 
     getNoteAsArr = () => {
         const note = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -150,7 +170,7 @@ class HomePage extends Component {
                     <form onSubmit={this.onSubmit}>
                         <label>
                             Enter first note (A4, B#9, C-1, etc.):
-                            <input className={'input-box'}
+                            <input className={'input-box note-one'}
                                    name={'note1'}
                                    type={'text'}
                                    placeholder={'C4'}
@@ -159,7 +179,7 @@ class HomePage extends Component {
                         <br/>
                         <label>
                             Enter second note (A4, B#9, C-1, etc.):
-                            <input className={'input-box'}
+                            <input className={'input-box note-two'}
                                    name={'note2'}
                                    type={'text'}
                                    placeholder={'C4'}
