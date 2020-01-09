@@ -16,7 +16,8 @@ class HomePage extends Component {
             untrainedPrediction: [],
             untrainedPitches: [],
             trainedPitches: [],
-            component: null
+            component: null,
+            loadingNotes: null
         };
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -24,15 +25,19 @@ class HomePage extends Component {
         this.getNoteAsArr = this.getNoteAsArr.bind(this);
     }
 
+
     playSongTrained = () => {
+        this.midiSounds.cancelQueue();
+        const start = this.midiSounds.contextTime();
         for (let i = 0; i < this.state.trainedPitches.length; i++) {
-                this.midiSounds.playChordAt(i, 3, [this.state.trainedPitches[i]], 1);
+                this.midiSounds.playChordAt(i + start, 3, [this.state.trainedPitches[i]], 1);
         }
     };
-
     playSongUntrained = () => {
-        for (let i = 0; i < this.state.untrainedPitches.length; i++) {
-                this.midiSounds.playChordAt(i, 3, [this.state.untrainedPitches[i]], 1);
+        this.midiSounds.cancelQueue();
+        const start = this.midiSounds.contextTime();
+        for (let j = 0; j < this.state.untrainedPitches.length; j++) {
+                this.midiSounds.playChordAt(j + start, 3, [this.state.untrainedPitches[j]], 1);
         }
     };
 
@@ -51,7 +56,7 @@ class HomePage extends Component {
 
     async predict() {
         await this.predictWithModel(this.props.model, "trained");
-        await this.predictWithModel(this.props.untrained_model, "untrained");
+        await this.predictWithModel(this.props.untrainedModel, "untrained");
         this.setState({
             component: <p>
                 <button onClick={this.playSongUntrained.bind(this)}>Play Untrained</button>
@@ -83,6 +88,8 @@ class HomePage extends Component {
             }
             prevNote1 = pred.slice(-2, -1);
             prevNote2 = pred.slice(-1);
+            prevNote1 = notesLettersAsKeys[prevNote1[0]];
+            prevNote2 = notesLettersAsKeys[prevNote2[0]];
             const prevNoteArr1 = new Array(128).fill(0);
             const prevNoteArr2 = new Array(128).fill(0);
             prevNoteArr1[prevNote1] = 1;
@@ -111,7 +118,6 @@ class HomePage extends Component {
                 }
             }
             pred = [...pred, predNote];
-
         }
         this.setState({[name + "Pitches"]:pitches});
         this.setState({[name + "Predictions"]: pred});
@@ -190,6 +196,7 @@ class HomePage extends Component {
                     </form>
                     <div className={'error'}>{this.state.error}</div>
                     <div className={'output'}>{this.state.component}</div>
+                    <div>{this.state.loadingNotes}</div>
                     <p>{"Untrained"}</p>
                     <div className={'pitches'}>
                         {this.state.untrainedPitches.map(x => <div className={'note'}>{x}</div>)}</div>
