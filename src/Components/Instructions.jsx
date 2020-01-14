@@ -2,7 +2,7 @@ import React from 'react';
 
 const Instructions = () => {
     return <div className={'instructions'}>
-        {'Enter the any two notes you would like. ' +
+        {'Enter any two notes you would like. ' +
         'Then listen as a song is generated off these values. ' +
         'Make sure the notes are of the form {note_pitch}{octave_number}, where' +
         'octave number is a value between -1 and 9 and note_pitch is one of the following:\n' +

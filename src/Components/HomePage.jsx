@@ -30,14 +30,14 @@ class HomePage extends Component {
         this.midiSounds.cancelQueue();
         const start = this.midiSounds.contextTime();
         for (let i = 0; i < this.state.trainedPitches.length; i++) {
-                this.midiSounds.playChordAt(i + start, 3, [this.state.trainedPitches[i]], 1);
+            this.midiSounds.playChordAt(i + start, 3, [this.state.trainedPitches[i]], 1);
         }
     };
     playSongUntrained = () => {
         this.midiSounds.cancelQueue();
         const start = this.midiSounds.contextTime();
         for (let j = 0; j < this.state.untrainedPitches.length; j++) {
-                this.midiSounds.playChordAt(j + start, 3, [this.state.untrainedPitches[j]], 1);
+            this.midiSounds.playChordAt(j + start, 3, [this.state.untrainedPitches[j]], 1);
         }
     };
 
@@ -49,7 +49,10 @@ class HomePage extends Component {
         event.preventDefault();
         this.setState(prevState => ({
             prediction: [prevState.note1, prevState.note2],
-            untrainedPrediction: [prevState.note1, prevState.note2]
+            untrainedPrediction: [prevState.note1, prevState.note2],
+            notesAsArr: null,
+            untrainedPitches: [],
+            trainedPitches: [],
         }));
         this.getNoteAsArr();
     };
@@ -119,7 +122,7 @@ class HomePage extends Component {
             }
             pred = [...pred, predNote];
         }
-        this.setState({[name + "Pitches"]:pitches});
+        this.setState({[name + "Pitches"]: pitches});
         this.setState({[name + "Predictions"]: pred});
     }
 
@@ -165,6 +168,19 @@ class HomePage extends Component {
         this.setState({[name]: notes})
     };
 
+    convertNumberToLetter = (x) => {
+        const note = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const octave = [];
+        for (let i = -1; i < 11; i++) {
+            octave.push(i.toString())
+        }
+        let notesNumsAsKeys = {};
+        for (let i = 0; i < 129; i++) {
+            notesNumsAsKeys[i] = note[i % 12] + octave[Math.floor(i / 12)];
+        }
+        return notesNumsAsKeys[x]
+    };
+
     render() {
         return (
             <div className={'main-content'}>
@@ -199,10 +215,10 @@ class HomePage extends Component {
                     <div>{this.state.loadingNotes}</div>
                     <p>{"Untrained"}</p>
                     <div className={'pitches'}>
-                        {this.state.untrainedPitches.map(x => <div className={'note'}>{x}</div>)}</div>
+                        {this.state.untrainedPitches.map(x => <div id={x} className={'note'}>{`${x}=(${this.convertNumberToLetter(x)})`}</div>)}</div>
                     <p>{"Trained"}</p>
                     <div className={'pitches'}>
-                        {this.state.trainedPitches.map(x => <div className={'note'}>{x}</div>)}</div>
+                        {this.state.trainedPitches.map(x => <div id={x} className={'note'}>{`${x}=(${this.convertNumberToLetter(x)})`}</div>)}</div>
                     <MIDISounds className={'midi'}
                                 ref={(ref) => (this.midiSounds = ref)}
                                 appElementName="root"
