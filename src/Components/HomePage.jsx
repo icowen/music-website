@@ -69,17 +69,15 @@ class HomePage extends Component {
     onSubmit = (event) => {
         event.preventDefault();
         if (this.state.recording.events.length >= 2) {
-            const note2 = this.state.recording.events.pop().midiNumber;
-            const note1 = this.state.recording.events.pop().midiNumber;
-            console.error('note1:', note1);
-            console.error('note2:', note2);
-            this.setState(prevState => ({
+            const note1 = this.state.recording.events.slice(-2, -1).midiNumber;
+            const note2 = this.state.recording.events.slice(-1).midiNumber;
+            this.setState({
                 prediction: [note1, note2],
                 untrainedPrediction: [note1, note2],
                 notesAsArr: null,
                 untrainedPitches: [],
                 trainedPitches: []
-            }));
+            });
             this.getNoteAsArr();
         } else {
             this.setState({component: <p>{'You must select 2 notes before playing!'}</p>})
@@ -156,43 +154,22 @@ class HomePage extends Component {
     }
 
     getNoteAsArr = () => {
-        const note = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        const octave = [];
-        for (let i = -1; i < 11; i++) {
-            octave.push(i.toString())
-        }
-
-        let notes = {};
-
-        for (let i = 0; i < 129; i++) {
-            notes[note[i % 12] + octave[Math.floor(i / 12)]] = i;
-        }
-
         const ret = [];
-        // const num1 = notes[this.state.prediction[-2]];
         const num1 = this.state.prediction[-2];
         const num2 = this.state.prediction[-1];
-        // const num2 = notes[this.state.prediction[-1]];
         console.error('num1:', num1);
         console.error('num2:', num2);
         let ret1 = new Array(128).fill(0);
         let ret2 = new Array(128).fill(0);
-        try {
-            // if (!Object.keys(notes).includes(this.state.note1)) throw new Error("Note 1 is not a valid note");
-            // if (!Object.keys(notes).includes(this.state.note2)) throw new Error("Note 2 is not a valid note");
-            ret1[num1] = 1;
-            ret2[num2] = 1;
-            ret.push(ret1.concat(ret2));
-            this.setState({
-                notesAsArr: ret,
-                error: null,
-                component: <Loading/>
-            });
-            return this.predict();
-        } catch (e) {
-            this.setState({notesAsArr: null, error: e.message})
-        }
-        return false
+        ret1[num1] = 1;
+        ret2[num2] = 1;
+        ret.push(ret1.concat(ret2));
+        this.setState({
+            notesAsArr: ret,
+            error: null,
+            component: <Loading/>
+        });
+        return this.predict();
     };
 
     onChange = (event) => {
@@ -228,27 +205,6 @@ class HomePage extends Component {
                 </h1>
                 <Instructions/>
                 <div>
-                    <form onSubmit={this.onSubmit}>
-                        <label>
-                            Enter first note (A4, B#9, C-1, etc.):
-                            <input className={'input-box note-one'}
-                                   name={'note1'}
-                                   type={'text'}
-                                   placeholder={'C4'}
-                                   onChange={this.onChange}/>
-                        </label>
-                        <br/>
-                        <label>
-                            Enter second note (A4, B#9, C-1, etc.):
-                            <input className={'input-box note-two'}
-                                   name={'note2'}
-                                   type={'text'}
-                                   placeholder={'C4'}
-                                   onChange={this.onChange}/>
-                        </label>
-                        <br/>
-                        <input type="submit" value="Make Music!"/>
-                    </form>
                     <PianoWithRecording noteRange={{first: 48, last: 77}}
                                         width={1024}
                                         playNote={() => {}}
@@ -256,7 +212,9 @@ class HomePage extends Component {
                                         recording={this.state.recording}
                                         setRecording={this.setRecording}
                                         keyboardShortcuts={keyboardShortcuts}/>
-                    <button onClick={this.onSubmit}>{'Play'}</button>
+                    <p>{"Selected: "}</p>
+                    <div>{this.state.recording.events.map(x => <div>{this.convertNumberToLetter(x["midiNumber"])}</div>)}</div>
+                    <button onClick={this.onSubmit}>{'Create Music'}</button>
                     <div className={'error'}>{this.state.error}</div>
                     <div className={'output'}>{this.state.component}</div>
                     <div>{this.state.loadingNotes}</div>
