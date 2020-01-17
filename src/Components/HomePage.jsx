@@ -3,7 +3,22 @@ import Instructions from "./Instructions";
 import * as tf from '@tensorflow/tfjs';
 import MIDISounds from 'midi-sounds-react';
 import Loading from "./Loading";
+import {Piano, KeyboardShortcuts, MidiNumbers} from 'react-piano';
+import 'react-piano/dist/styles.css';
+import '../customPianoStyles.css';
+import PianoWithRecording from "./PianoWithRecording";
 
+
+const noteRange = {
+    first: MidiNumbers.fromNote('c3'),
+    last: MidiNumbers.fromNote('f4'),
+};
+
+const keyboardShortcuts = KeyboardShortcuts.create({
+    firstNote: noteRange.first,
+    lastNote: noteRange.last,
+    keyboardConfig: KeyboardShortcuts.HOME_ROW,
+});
 
 class HomePage extends Component {
     constructor(props) {
@@ -17,7 +32,13 @@ class HomePage extends Component {
             untrainedPitches: [],
             trainedPitches: [],
             component: null,
-            loadingNotes: null
+            loadingNotes: null,
+            recording: {
+                mode: 'RECORDING',
+                events: [],
+                currentTime: 0,
+                currentEvents: [],
+            }
         };
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -47,14 +68,22 @@ class HomePage extends Component {
 
     onSubmit = (event) => {
         event.preventDefault();
-        this.setState(prevState => ({
-            prediction: [prevState.note1, prevState.note2],
-            untrainedPrediction: [prevState.note1, prevState.note2],
-            notesAsArr: null,
-            untrainedPitches: [],
-            trainedPitches: [],
-        }));
-        this.getNoteAsArr();
+        if (this.state.recording.events.length >= 2) {
+            const note2 = this.state.recording.events.pop().midiNumber;
+            const note1 = this.state.recording.events.pop().midiNumber;
+            console.error('note1:', note1);
+            console.error('note2:', note2);
+            this.setState(prevState => ({
+                prediction: [note1, note2],
+                untrainedPrediction: [note1, note2],
+                notesAsArr: null,
+                untrainedPitches: [],
+                trainedPitches: []
+            }));
+            this.getNoteAsArr();
+        } else {
+            this.setState({component: <p>{'You must select 2 notes before playing!'}</p>})
+        }
     };
 
     async predict() {
@@ -140,13 +169,17 @@ class HomePage extends Component {
         }
 
         const ret = [];
-        const num1 = notes[this.state.note1];
-        const num2 = notes[this.state.note2];
+        // const num1 = notes[this.state.prediction[-2]];
+        const num1 = this.state.prediction[-2];
+        const num2 = this.state.prediction[-1];
+        // const num2 = notes[this.state.prediction[-1]];
+        console.error('num1:', num1);
+        console.error('num2:', num2);
         let ret1 = new Array(128).fill(0);
         let ret2 = new Array(128).fill(0);
         try {
-            if (!Object.keys(notes).includes(this.state.note1)) throw new Error("Note 1 is not a valid note");
-            if (!Object.keys(notes).includes(this.state.note2)) throw new Error("Note 2 is not a valid note");
+            // if (!Object.keys(notes).includes(this.state.note1)) throw new Error("Note 1 is not a valid note");
+            // if (!Object.keys(notes).includes(this.state.note2)) throw new Error("Note 2 is not a valid note");
             ret1[num1] = 1;
             ret2[num2] = 1;
             ret.push(ret1.concat(ret2));
@@ -181,6 +214,12 @@ class HomePage extends Component {
         return notesNumsAsKeys[x]
     };
 
+    setRecording = value => {
+        this.setState({
+            recording: Object.assign({}, this.state.recording, value)
+        });
+    };
+
     render() {
         return (
             <div className={'main-content'}>
@@ -210,15 +249,25 @@ class HomePage extends Component {
                         <br/>
                         <input type="submit" value="Make Music!"/>
                     </form>
+                    <PianoWithRecording noteRange={{first: 48, last: 77}}
+                                        width={1024}
+                                        playNote={() => {}}
+                                        stopNote={() => {}}
+                                        recording={this.state.recording}
+                                        setRecording={this.setRecording}
+                                        keyboardShortcuts={keyboardShortcuts}/>
+                    <button onClick={this.onSubmit}>{'Play'}</button>
                     <div className={'error'}>{this.state.error}</div>
                     <div className={'output'}>{this.state.component}</div>
                     <div>{this.state.loadingNotes}</div>
                     <p>{"Untrained"}</p>
                     <div className={'pitches'}>
-                        {this.state.untrainedPitches.map(x => <div id={x} className={'note'}>{`${x}=(${this.convertNumberToLetter(x)})`}</div>)}</div>
+                        {this.state.untrainedPitches.map(x => <div id={x}
+                                                                   className={'note'}>{`${x}=(${this.convertNumberToLetter(x)})`}</div>)}</div>
                     <p>{"Trained"}</p>
                     <div className={'pitches'}>
-                        {this.state.trainedPitches.map(x => <div id={x} className={'note'}>{`${x}=(${this.convertNumberToLetter(x)})`}</div>)}</div>
+                        {this.state.trainedPitches.map(x => <div id={x}
+                                                                 className={'note'}>{`${x}=(${this.convertNumberToLetter(x)})`}</div>)}</div>
                     <MIDISounds className={'midi'}
                                 ref={(ref) => (this.midiSounds = ref)}
                                 appElementName="root"

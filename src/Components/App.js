@@ -14,7 +14,6 @@ class App extends Component {
     async componentDidMount() {
         const model = await tf.loadLayersModel('https://cors-anywhere.herokuapp.com/https://storage.googleapis.com/music-website/model1.json');
         const untrainedModel = await tf.loadLayersModel('https://cors-anywhere.herokuapp.com/https://storage.googleapis.com/music-website/model_untrained.json');
-        console.error('here');
         this.setState({
             model, untrainedModel, component: <HomePage model={model}
                                                         untrainedModel={untrainedModel}/>

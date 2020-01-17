@@ -1,0 +1,16 @@
+.ReactPiano__Key--active {
+    background: #00ff00;  /* Change the default active key color to bright red */
+}
+
+.ReactPiano__Key--accidental {
+    background: #000;  /* Change accidental keys to be completely black */
+}
+
+.ReactPiano__Key--natural {
+    background: #ffffff;
+    border: 1px solid #000;
+}
+
+.ReactPiano__Key:hover {
+    background: #0000ff;
+}
