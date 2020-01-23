@@ -13,6 +13,7 @@
 
 .ReactPiano__Key:hover {
     background: grey;
+    box-shadow: inset 5px 5px 5px #636363;
 }
 
 .ReactPiano__Keyboard {

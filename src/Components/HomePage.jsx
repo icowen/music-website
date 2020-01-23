@@ -136,14 +136,17 @@ class HomePage extends Component {
                 const note = normPred[i];
                 cutOff += note;
                 if (rand <= cutOff) {
-                    if (i < 21) {
+                    if (i < 24) {
                         predNote = notesNumsAsKeys[i + 24];
+                        pitches = [...pitches, i + 24];
                     } else if (i > 108) {
-                        predNote = notesNumsAsKeys[i - 24]
+                        predNote = notesNumsAsKeys[i - 24];
+                        pitches = [...pitches, i - 24];
                     } else {
                         predNote = notesNumsAsKeys[i];
+                        pitches = [...pitches, i];
                     }
-                    pitches = [...pitches, i];
+
                     break;
                 }
             }
@@ -157,8 +160,6 @@ class HomePage extends Component {
         const ret = [];
         const num1 = this.state.prediction[-2];
         const num2 = this.state.prediction[-1];
-        console.error('num1:', num1);
-        console.error('num2:', num2);
         let ret1 = new Array(128).fill(0);
         let ret2 = new Array(128).fill(0);
         ret1[num1] = 1;
@@ -207,13 +208,16 @@ class HomePage extends Component {
                 <div>
                     <PianoWithRecording noteRange={{first: 48, last: 77}}
                                         width={1024}
-                                        playNote={() => {}}
-                                        stopNote={() => {}}
+                                        playNote={() => {
+                                        }}
+                                        stopNote={() => {
+                                        }}
                                         recording={this.state.recording}
                                         setRecording={this.setRecording}
                                         keyboardShortcuts={keyboardShortcuts}/>
                     <p>{"Selected: "}</p>
-                    <div>{this.state.recording.events.map(x => <div>{this.convertNumberToLetter(x["midiNumber"])}</div>)}</div>
+                    <div>{this.state.recording.events.map(x =>
+                        <div>{this.convertNumberToLetter(x["midiNumber"])}</div>)}</div>
                     <button onClick={this.onSubmit}>{'Create Music'}</button>
                     <div className={'error'}>{this.state.error}</div>
                     <div className={'output'}>{this.state.component}</div>
