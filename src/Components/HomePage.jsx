@@ -51,14 +51,14 @@ class HomePage extends Component {
         this.midiSounds.cancelQueue();
         const start = this.midiSounds.contextTime();
         for (let i = 0; i < this.state.trainedPitches.length; i++) {
-            this.midiSounds.playChordAt(i + start, 3, [this.state.trainedPitches[i]], 1);
+            this.midiSounds.playChordAt((i + start)*.5, 3, [this.state.trainedPitches[i]], .1);
         }
     };
     playSongUntrained = () => {
         this.midiSounds.cancelQueue();
         const start = this.midiSounds.contextTime();
         for (let j = 0; j < this.state.untrainedPitches.length; j++) {
-            this.midiSounds.playChordAt(j + start, 3, [this.state.untrainedPitches[j]], 1);
+            this.midiSounds.playChordAt((j + start)*.5, 3, [this.state.untrainedPitches[j]], .1);
         }
     };
 
